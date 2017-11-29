@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>Salary Timesheet</title>
+    </head>
+
+    <body>
+        <h1>Salary Timesheet</h1>
+        <h2 th:text="${text}">Testing..</h2>
+        <form th:action="@{/}" method="POST">
+            <input type="text" name="content"/>
+            <input type="submit"/>
+        </form>
+        <ul>
+            <li th:each="entry : ${entries}">
+                <span th:text="${entry.getName()}">hello world!</span>
+                <span th:text="${entry.getDate()}">hello world!</span>
+                <span th:text="${entry.getMinutes()}">0</span> minutes
+            </li>
+        </ul>
+    </body>
+</html>
