@@ -15,7 +15,9 @@
             <li th:each="entry : ${entries}">
                 <span th:text="${entry.getName()}">hello world!</span>
                 <span th:text="${entry.getDate()}">hello world!</span>
-                <span th:text="${entry.getMinutes()}">0</span> minutes
+                <span th:text="${entry.getRegular()}">0</span> minutes
+                <span th:text="${entry.getOvertime()}">0</span> minutes
+                <span th:text="${entry.getEvening()}">0</span> minutes
             </li>
         </ul>
     </body>

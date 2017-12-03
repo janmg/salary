@@ -1,11 +1,5 @@
 package com.janmg.salary.model;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -20,40 +14,45 @@ import lombok.Getter;
 @Table
 @Data // Lombok for creating all getters
 public class TimeEntry extends AbstractPersistable<Long> {
+	
 	private @Id @GeneratedValue Long id;
+	private String pk;
 	private String name;
 	private String persid;
 	private String date;
 	private String start;
 	private String end;
-	private String minutes;
+	@Getter private int regular;
+	@Getter private int evening;
+	@Getter private int overtime;
     
 	public TimeEntry() {}
 	
-    public TimeEntry(String name, String persid, String date, String start, String end) {
+    public TimeEntry(String name, String persid, String date, int regular, int evening, int overtime) {
+    	// WTF: Using Personnel ID and data as primary key instead of @ID ... PrimaryKeyJoinColumn did not look pretty.
+    	// https://en.wikibooks.org/wiki/Java_Persistence/Identity_and_Sequencing#Example_JPA_2.0_ManyToOne_id_annotation
+    	this.pk = persid+"_"+date;
     	this.name = name;
     	this.persid = persid;
     	this.date = date;
-    	this.start = start;
-    	this.end = end;
-    	this.minutes = getWorkingMinutes();
+    	this.regular = regular;
+    	this.evening = evening;
+    	this.overtime = overtime;
+    	//this.minutes = getWorkingMinutes();
+    	
 	}
-    
-    public String getWorkingMinutes() {
-    	final String TIME_ZONE = "Europe/Helsinki";
 
-    	// ZoneDateTime is used so that the timezones can take daylightsaving into account
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d.M.yyyy H:mm");
-        ZonedDateTime starttime = ZonedDateTime.of(LocalDateTime.parse(date+" "+start, formatter), ZoneId.of(TIME_ZONE));
-        ZonedDateTime endtime = ZonedDateTime.of(LocalDateTime.parse(date+" "+end, formatter), ZoneId.of(TIME_ZONE));
+	public int getRegular() {
+		return regular;
+	}
+	public int getOvertime() {
+		return overtime;
+	}
+	public int getEvening() {
+		return evening;
+	}
 
-        // Working past midnight
-    	if (endtime.isBefore(starttime)) {
-            endtime = ZonedDateTime.of(LocalDateTime.parse(date+" "+end, formatter).plusDays(1), ZoneId.of(TIME_ZONE));
-    	}
-    	return ((int)Duration.between(starttime, endtime).toMinutes())+"";
-    }
-    
+	
     // TODO: Find overlapping entries
     // TODO: Find inconsistent name/id pairs
     // TODO: Fix Daylight saving time
