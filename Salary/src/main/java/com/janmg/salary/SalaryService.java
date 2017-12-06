@@ -4,10 +4,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -18,15 +25,20 @@ import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.janmg.salary.model.TimeEntry;
-import com.janmg.salary.model.TimeRepository;
+import com.janmg.salary.domain.Employee;
+import com.janmg.salary.domain.TimeEntry;
+import com.janmg.salary.repository.EmployeeRepository;
+import com.janmg.salary.repository.TimeRepository;
 
 @Service
-@Repository
 public class SalaryService {
  
     @Autowired
-    private TimeRepository repository;
+    private EmployeeRepository employees;
+	@Autowired
+    private TimeRepository timeRepository;
+    @Autowired
+    private TimeRepository calculatedRepository;
 
 	// WTF: Java8 ZoneDateTime with timezone can track daylightsaving and can do date calculations and manipulations.
     private final String TIME_ZONE = "Europe/Helsinki";
@@ -42,28 +54,35 @@ public class SalaryService {
     	Reader in = new InputStreamReader(getClass().getResourceAsStream("/HourList201403.csv"));
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
 		
+		// TreeMap<String,CalculatedEntry>  = new TreeMap<>();
+		// TODO: find a good strategy for calculating 
+		
 		ArrayList<TimeEntry> allEntries = new ArrayList<>();
 		for (final CSVRecord rec : records) {
 		    allEntries.add(new TimeEntry(rec.get("Person Name"), new Integer(rec.get("Person ID")), rec.get("Date"), rec.get("Start"), rec.get("End")));
+    		TreeMap<String,CalculatedEntry> calc = new TreeMap<>();
+    		
+		    calculate();
+		    
 		}
-		repository.saveAll(allEntries);
+		timeRepository.saveAll(allEntries);
+		calculate();
     }
 
     public void calculate() {
-    	ArrayList<TimeEntry> entries = repository.findDistinctPersid();
-    	for (TimeEntry entry : entries) {
+    	
+    	ArrayList<Employee> entries = (ArrayList<Employee>) employees.findAll();
+    	for (Employee entry : entries) {
     		int persid = entry.getPersid();
-    		System.out.println(persid);
-    	}
     	
-    	/*
-    	
-    	
-		TreeMap<String,TimeEntry> allEntries = new TreeMap<>();
-		repository.
+    		TreeMap<String,CalculatedEntry> calc = new TreeMap<>();
 		
-		    float regular = 0;
-		    float evening = 0;
+		    int regular = 0;
+		    int evening = 0;
+		    
+		    String date = "2.3.2014";
+		    String start = "6:00";
+		    String end = "14:00";
 		    
 	        ZonedDateTime starttime = ZonedDateTime.of(LocalDateTime.parse(date+" "+start, formatter), ZoneId.of(TIME_ZONE));
 	        ZonedDateTime endtime = ZonedDateTime.of(LocalDateTime.parse(date+" "+end, formatter), ZoneId.of(TIME_ZONE));
@@ -73,6 +92,8 @@ public class SalaryService {
 	            endtime = ZonedDateTime.of(LocalDateTime.parse(date+" "+end, formatter).plusDays(1), ZoneId.of(TIME_ZONE));
 	    	}
 
+	    	// Load previouse time entries
+/*
 	    	// pk is the primary key only used for storing the employee_id and the date. pk is used to find multiple entries and combine them
 		    String pk = persid+"_"+date;
 		    TimeEntry entry;
@@ -83,7 +104,7 @@ public class SalaryService {
 				if (entry.getRegular()>0) regular = entry.getRegular();
 				if (entry.getEvening()>0) evening = entry.getEvening();
 		    }
-
+*/
 		    // Calculate regular time
 		    regular = regular + getMinutesBetween(starttime, endtime);
 
@@ -92,10 +113,10 @@ public class SalaryService {
 
 		    // Calculate overtime multiplier;
 		    float overtime = calculateOvertime(regular);
-		    double pay = ((regular * overtime) + (1.15 * evening)); 
-
-		}
-		*/
+		    double pay = ((regular * overtime) + (1.15 * evening));
+		    
+		    // Weekend Calculation
+    	}
     }
 
 	private int calculateEveningtime(ZonedDateTime starttime, ZonedDateTime endtime) {
@@ -141,21 +162,21 @@ public class SalaryService {
 
 	@Transactional(readOnly=true)
     public List<TimeEntry> getAll() {
-        return repository.findAll();
+        return timeRepository.findAll();
     }
  
     @Transactional
     public TimeEntry saveAndFlush(TimeEntry te) {
  
         if ( te != null ) {
-            te = repository.saveAndFlush(te);
+            te = timeRepository.saveAndFlush(te);
         }
         return te;
     }
  
     @Transactional
     public void delete(long id) {
-    	repository.deleteById(id);
+    	timeRepository.deleteById(id);
     }
     
     private int getMinutesBetween(ZonedDateTime starttime, ZonedDateTime endtime) {

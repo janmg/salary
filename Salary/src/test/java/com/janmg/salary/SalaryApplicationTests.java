@@ -13,4 +13,8 @@ public class SalaryApplicationTests {
 	public void contextLoads() {
 	}
 
+	// Test 1: one regular work time
+	// Test 2: one regular work time, 2 entries
+	// Test 3: test evening hours
+	// Test 4: overtime
 }
