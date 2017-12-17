@@ -1,19 +1,20 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
     <head>
-        <title>Salary Timesheet</title>
+        <title>Employee List</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <!-- https://www.w3schools.com/w3css/tryw3css_templates_blog.htm -->
 		<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 		<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway">
     </head>
 
     <body>
-        <h1>Salary Payments</h1>
-        <table>
-		    <tr data-th-each="entry : ${entries}">
-		        <td data-th-text="${entry.persid}">...</td>
-		        <td data-th-text="${entry.name}">...</td>
-		        <td data-th-text="${entry.pay}">...</td>
+        <h1>Employee List</h1>
+		<table>
+		    <tr data-th-each="employee : ${employees}">
+		        <td data-th-text="${employee.persid}">...</td>
+		        <td data-th-text="${employee.name}">...</td>
+		        <td data-th-text="${employee.hourlyrate}">...</td>
 		    </tr>
 		</table>
     </body>

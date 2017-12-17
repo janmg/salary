@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import com.janmg.salary.domain.TimeEntry;
 
 public class DateTime {
     // WTF: Java8 ZoneDateTime with timezone can track daylightsaving and can do date calculations and manipulations.
@@ -37,6 +38,12 @@ public class DateTime {
         return ZonedDateTime.of(LocalDateTime.parse(date + " " + time, formatter), ZoneId.of(timezone));
     }
 
+    // --- CUT HERE ---
+    // Below should be put in an own  class, using datetime as an object
+    public int calculateRegular(TimeEntry time) {
+        return calculateRegular(time.getDate(), time.getStart(), time.getEnd());
+    }
+    
     public int calculateRegular(String date, String start, String end) {
         ZonedDateTime starttime = format(date, start);
         ZonedDateTime endtime = format(date, end);
@@ -47,6 +54,10 @@ public class DateTime {
         }
 
         return getMinutesBetween(starttime, endtime);
+    }
+    
+    public int calculateEveningtime(TimeEntry time) {
+        return calculateEveningtime(time.getDate(), time.getStart(), time.getEnd());
     }
 
     public int calculateEveningtime(String date, String start, String end) {
@@ -68,30 +79,28 @@ public class DateTime {
         return evening;
     }
     
-    public float calculateOvertime(float regular) {
-        // All worked minutes with overtime add as minutes
+    public float calculateOvertime(float wallclock) {
+        // All worked minutes with overtime added as extra minutes
         // < 8h = 8h
         // <10h = 8h + rest 25%
         // <12h = 8h + 2h 25% + rest 50%
         // >12h = 8h + 2h 25% + 2h 50% + rest 100%
         
-        float multiplier = 0;
-        
-        if (regular < 8*60) {
-            multiplier = regular;
-        } else {
-            multiplier = 8*60;
-            if (regular < 10*60) {
-                multiplier = multiplier + ((25/100) * (regular-8) * 60);
+        float timefortime = wallclock;
+
+        if (wallclock > 8*60) {
+            timefortime = 8*60;
+            if (wallclock < 10*60) {
+                timefortime += 1.25 * (wallclock - 8*60);
             } else {
-                multiplier = multiplier + ((25/100) * 2);
-                if (regular < 12) {
-                    multiplier = multiplier + ((50/100) * (regular-10) * 60);
+                timefortime += 150; // 1.25 * 2*60
+                if (wallclock < 12*60) {
+                    timefortime += 1.5 * (wallclock - 10*60);
                 } else {
-                    multiplier = multiplier + ((50/100) * 2)  + ((100/100) * (regular-12)*60);
+                    timefortime += 180 + 2 * (wallclock - 12*60); 
                 }
             }
         }
-        return multiplier;
+        return timefortime;
     }
 }

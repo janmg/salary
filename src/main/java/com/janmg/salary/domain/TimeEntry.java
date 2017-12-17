@@ -15,17 +15,18 @@ public class TimeEntry extends AbstractPersistable<Long> {
 	
 	@Id @GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
-	@Getter private String name;
+	// TODO: Changed to public because of bean accessibility
+	@Getter public String name;
 	//@OneToMany
-	@Getter private int persid;
-	@Getter private String date;
-	@Getter private String start;
-	@Getter private String end;
+	@Getter public int persid;
+	@Getter public String date;
+	@Getter public String start;
+	@Getter public String end;
     
     protected TimeEntry() {
     }
 
-    public TimeEntry(String name, int persid, String date, String start, String end) {
+    public TimeEntry(int persid, String name, String date, String start, String end) {
     	this.name = name;
     	this.persid = persid;
     	this.date = date;
@@ -33,10 +34,22 @@ public class TimeEntry extends AbstractPersistable<Long> {
     	this.end = end;
 	}
 
+    // TODO: Fix Lombox, getters are so '90-ties
 	public int getPersid() {
 		return persid;
 	}
 
+    public String getDate() {
+        return date;
+    }
+
+    public String getStart() {
+        return start;
+    }
+
+    public String getEnd() {
+        return end;
+    }
+
     // TODO: Find overlapping entries
-    // TODO: Find inconsistent name/id pairs
 }

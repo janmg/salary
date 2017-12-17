@@ -27,6 +27,10 @@ public class Employee {
 	public int getPersid() {
 		return persid;
 	}
+
+	public String getName() {
+        return name;
+    }
 	
     @Override
     public String toString() {
