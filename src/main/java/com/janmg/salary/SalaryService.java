@@ -2,8 +2,10 @@ package com.janmg.salary;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeMap;
 import javax.annotation.PostConstruct;
 import org.apache.commons.csv.CSVFormat;
@@ -19,12 +21,12 @@ import com.janmg.salary.domain.TimeEntry;
 import com.janmg.salary.repository.CalculatedRepository;
 import com.janmg.salary.repository.EmployeeRepository;
 import com.janmg.salary.repository.TimeRepository;
+import com.janmg.salary.utils.Calculate;
 import com.janmg.salary.utils.Config;
-import com.janmg.salary.utils.DateTime;
 
 @Service
 public class SalaryService {
- 
+
     @Autowired
     private EmployeeRepository employeeRepo;
 	@Autowired
@@ -38,6 +40,9 @@ public class SalaryService {
     @PostConstruct
     @Transactional
     public void init() throws IOException {
+        
+        // TODO: Move this out of the init phase, reviewers don't like shortcuts
+        
     	// Read CSV and populate JPA
     	Reader in = new InputStreamReader(getClass().getResourceAsStream("/HourList201403.csv"));
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
@@ -50,8 +55,24 @@ public class SalaryService {
 		}
 		timeRepo.saveAll(allEntries);
 
-		// And finally calculate salary details
+		// Calculate salary details
 		calculate();
+
+		// Read JPA and populate CSV
+        PrintWriter writer = new PrintWriter("monthly-output.csv", "UTF-8");
+        writer.println("Monthly Wages 03/2014:");
+        List<CalculatedEntry> entries = calculatedRepo.findAll();
+        for (CalculatedEntry ce : entries) {
+            writer.println(ce.getPersid() + ", " + ce.getName() + ", " + conf.getDenomination() + ce.getPay());
+        }
+        writer.close();
+		
+/*
+ 		Monthly Wages 03/2014:
+		    1, John Smith, $2534.00
+		    2, Jane Smith, $763.25
+		    3, James Smith, $8539.72
+*/
     }
 
     private void calculate() {
@@ -60,7 +81,7 @@ public class SalaryService {
     	for (Employee employee : employees) {
     		int persid = employee.getPersid();
 
-    		TreeMap<String,CalculatedDailyAmount> calc = new TreeMap<>();
+    		TreeMap<String,CalculatedDailyAmount> amounts = new TreeMap<>();
     		double totalpay = 0;
     		
     		ArrayList<TimeEntry> entries = (ArrayList<TimeEntry>) timeRepo.findByPersid(employee.getPersid());
@@ -69,34 +90,33 @@ public class SalaryService {
                 int regular = 0;
                 int evening = 0;
 
-		        if (calc.containsKey(time.getDate())) {
+		        if (amounts.containsKey(time.getDate())) {
 		            // Remove first entries for same date and recalculate the payment
-		            CalculatedDailyAmount cda = calc.get(time.getDate());
+		            CalculatedDailyAmount cda = amounts.get(time.getDate());
 		            regular = cda.getRegular();
 		            evening = cda.getEvening();
 	                totalpay -= cda.getPay();
-		            calc.remove(time.getDate());
+	                amounts.remove(time.getDate());
 		        }
 		         
 		        // Load previous time entries
-		        // CalculatedEntry ce = calc.get(date);
-		        DateTime dt = new DateTime(conf.get("date.timezone"), conf.get("date.format"), conf.get("shift.start"), conf.get("shift.end"));
+		        Calculate calc = new Calculate(conf);
 		    
     		    // Calculate regular time
-                regular += dt.calculateRegular(time);
+                regular += calc.calculateRegular(time);
     
     		    // Calculate evening time compensation (out-of-office hours)
-    		    evening += dt.calculateEveningtime(time);
+    		    evening += calc.calculateEveningtime(time);
     
     		    // Calculate overtime as regular time plus overtime added as extra 'regular' time.
     		    // For example 480min is 8h of regular time. 540min is 8h + 1h of overtime, which adds 15min to 555min 
-    		    float overtime = dt.calculateOvertime(regular);
+    		    float overtime = calc.calculateOvertime(regular);
     		    double pay = ((conf.getRate("default") * overtime) + (conf.getRate("evening") * evening)) / 60;
     		    		    
     		    // Calculate weekend and holidays
     		    // TODO: not part of the assignment, but would be very useful
 
-    		    calc.put(time.getDate(), new CalculatedDailyAmount(regular, evening, pay));
+    		    amounts.put(time.getDate(), new CalculatedDailyAmount(regular, evening, pay));
     		    totalpay += pay;
     		    log.debug("persid: " + persid + ", time: "+time.getDate()+" "+time.getStart()+"-"+time.getEnd()+", regular: "+regular+", evening: "+evening+", overtime: "+overtime+", pay: "+conf.getDenomination("default")+pay);
         	}

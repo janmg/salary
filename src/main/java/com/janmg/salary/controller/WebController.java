@@ -2,6 +2,7 @@ package com.janmg.salary.controller;
 
 import javax.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,7 @@ import com.janmg.salary.repository.EmployeeRepository;
 import com.janmg.salary.repository.TimeRepository;
 
 @Controller
-public class WebController {
+public class WebController implements ErrorController {
 
     @Autowired
     private TimeRepository timeRepository;
@@ -53,8 +54,9 @@ public class WebController {
         return "calculated";
     }
 
-    @GetMapping("/500")
-    public String error() {
+    @Override
+    public String getErrorPath() {
+        // TODO Auto-generated method stub
         return "surullinen";
     }
     

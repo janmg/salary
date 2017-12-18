@@ -20,13 +20,14 @@ public class Config {
             // Maybe nicer to package config.properties as a resource in the JAR and load the defaults from there if loading an external file fails. 
         }
 
-        // Defaults are only set for properties without key
+        // Defaults are only set as fallback for properties without key
         setDefault("shift.start", "6:00");
         setDefault("shift.end", "18:00");
         setDefault("date.timezone", "Europe/Helsinki");
         setDefault("date.format", "d.M.yyyy H:mm");
         setDefault("rate.default", "$3.75");
         setDefault("rate.evening", "$1.15");
+        setDefault("csv.directory", "./");
     }
 
     public String get(String key) {
@@ -42,6 +43,9 @@ public class Config {
         return new Double(value);
     }
 
+    public char getDenomination() {
+        return currency;
+    }
     public char getDenomination(String key) {
         String value = get("rate."+key);
         char chr = value.charAt(0);
