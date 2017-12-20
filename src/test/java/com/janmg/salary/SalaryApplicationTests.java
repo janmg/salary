@@ -14,23 +14,19 @@ import com.janmg.salary.utils.Config;
 @SpringBootTest
 public class SalaryApplicationTests {
 
-	// Test 1: one regular work time
-	// Test 2: one regular work time, 2 entries
-	// Test 3: test evening hours
-	// Test 4: overtime
-
 	@Test
 	public void rangeTest() {
+	    // The range test checks for a full 24 hours if the regular and overtime are increasing linearly for every minute, this does not check the actual values. Those are checked in the spotChecks.  
 	    Calculate calc = new Calculate(new Config());
 	    int prev_regular = 0;
 	    float prev_overtime = 1;
 	    
-	    for (int hours=0;hours<24;hours++) {
+	    for (int hours=4;hours<28;hours++) {
 	        for (int mins=0;mins<60;mins++) {
-	            String endtime = String.format("%d:%02d", hours, mins);
+	            String endtime = String.format("%d:%02d", hours%24, mins);
 	            
 	            // Test if regular work time increases for every minute
-	            int regular = calc.calculateRegular("1.1.2010", "0:00", endtime);
+	            int regular = calc.calculateRegular("1.1.2010", "4:00", endtime);
 	            if (regular < prev_regular) fail("More work should always result in more regular minutes");
 	            prev_regular = regular;
 

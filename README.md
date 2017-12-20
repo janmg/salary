@@ -55,3 +55,8 @@ Other extra compensations are not included in hourly wage when calculating overt
  - >12h = 8h + 2h 25% + 2h 50% + rest 100%
 
 ## Test Cases
+
+Testcases cover the time related classes because they contain the most logic, which has a potential to break.
+ - The testcases cover a range check for 24 hours to verify the regular and overtime minutes are increasing linearly for every minute.
+ - Spotchecks are done on the boundries to check if the actual values match.
+ - The daylightsaving check is done to see that working nighttime in march is rewarded for a non-existing hour
