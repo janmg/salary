@@ -40,10 +40,6 @@ public class DateTime {
         return number;
     }
 
-    public ZonedDateTime asMoment(ZonedDateTime time, String shift) {
-        return time.withHour(new Integer(shift.split(":")[0])).withMinute(new Integer(shift.split(":")[1]));
-    }
-
     public int getMinutesBetween(ZonedDateTime starttime, ZonedDateTime endtime) {
         return (int) Duration.between(starttime, endtime).toMinutes();
     }
@@ -52,11 +48,15 @@ public class DateTime {
         return endtime.plusDays(1);
     }
 
-    public String getShiftStart() {
-        return shiftstart;
+    public ZonedDateTime getShiftStart(ZonedDateTime date) {
+        return asZoneDateTime(date, shiftstart);
     }
 
-    public String getShiftEnd() {
-        return shiftend;
+    public ZonedDateTime getShiftEnd(ZonedDateTime date) {
+        return asZoneDateTime(date, shiftend);
+    }
+    
+    private ZonedDateTime asZoneDateTime(ZonedDateTime date, String shift) {
+        return date.withHour(new Integer(shift.split(":")[0])).withMinute(new Integer(shift.split(":")[1]));
     }
 }
