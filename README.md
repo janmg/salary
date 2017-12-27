@@ -11,11 +11,11 @@ To make the assignment interesting, it's written in Spring and especially JPA Hi
 ```sh
 mvn install
 mvn test
-mvn spring-boot:repackage
+mvn package
 ```
 
 ```sh
-java -jar target/salary-0.0.1-SNAPSHOT-spring-boot.jar &
+java -jar target/salary-0.0.1-SNAPSHOT.jar &
 ```
 
 John Smith, 8, 26.3.2014, 13:15, 2:00
@@ -52,7 +52,7 @@ Other extra compensations are not included in hourly wage when calculating overt
  - < 8h = 8h
  - <10h = 8h + rest 25%
  - <12h = 8h + 2h 25% + rest 50%
- - >12h = 8h + 2h 25% + 2h 50% + rest 100%
+ - \>12h = 8h + 2h 25% + 2h 50% + rest 100%
 
 ## Test Cases
 
