@@ -1,0 +1,41 @@
+<div th:fragment="home">
+  <h1 class="text-uppercase mb-0">Salary Application</h1>
+  <h2 class="font-weight-light mb-0">By JANMG for show and tell</h2>
+
+  <p>This is a  demo application that can process a CSV file with timesheets and can calculate the salary</p>
+
+  <p>
+    <span class="numberCircle">1</span>
+    First upload a CSV file with timesheet data, or click DEMO for previewing.
+  </p>
+    <form action="demo">
+    <input type="submit" value="demo" />
+  </form>
+  <bold>OR</bold>
+  <form action="upload" th:action="@{/upload}" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" />
+    <input type="submit" value="upload" />
+  </form>
+  <hr />
+
+  <p>
+    <span class="numberCircle">2</span>
+    Look at the employee list
+  </p>
+  <hr />
+
+  <p>
+    <span class="numberCircle">3</span>
+    Look at the timesheet
+  </p>
+  <hr />
+
+  <p>
+    <span class="numberCircle">4</span>
+    Look at the calculated table of salary information and download it as CSV!
+  </p>
+  <hr />
+
+  <p>The code can be found at <a href="https://github.com/janmg/salary">github.com/janmg/salary</a></p>
+  
+</div>
