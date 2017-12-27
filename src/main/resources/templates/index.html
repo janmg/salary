@@ -1,26 +1,14 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+  <head lang="en" th:replace="fragments/header :: header"></head>
 
-    <head>
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css">
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.bundle.min.js"></script>
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>
-		<meta name="viewport" content="width=device-width, initial-scale=1">
-    </head>
+  <body>
+    <div id="nav" th:replace="fragments/nav :: nav"></div>
 
-    <body>
-    	<div class="container-fluid">
-        <h1>Salary Application</h1>
-        <a href="/employees">employee list</a><br />
-        <a href="/time">Time Sheet</a><br />
-        <a href="/calculated">Calculated end result</a><br />
-        <a href="/error">error page</a><br />
-
-        <a href="/api/">Auto generated REST API</a><br />
-
-		<li><a href="/api/timeEntries{?page,size,sort}">/api/timeEntries{?page,size,sort}</a></li>
-		<li><a href="/api/rest/employee{?page,size,sort}">/api/rest/employee{?page,size,sort}</a></li>
-		<li><a href="/api/profile">/api/profile</a></li>
-		</div>
-    </body>
+    <div id="message" th:if="${message != null}" th:text=${message}></div>
+    
+    <div id="main" th:replace="@{'views/' + ${content}} :: ${content}"></div>
+    
+    <div id="foot" th:replace="fragments/footer :: footer"></div>
+  </body>
 </html>

@@ -9,6 +9,7 @@
 	<packaging>jar</packaging>
 
 	<name>salary</name>
+	<description>Salary program for show and tell</description>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
@@ -41,14 +42,26 @@
 			<artifactId>spring-boot-starter-thymeleaf</artifactId>
 		</dependency>
 		<dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
 		</dependency>
+
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-csv</artifactId>
 			<version>1.5</version>
 		</dependency>
+		<dependency>
+		    <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.6</version>
+		</dependency>
+
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
@@ -113,6 +126,4 @@
 		</pluginRepository>
 	</pluginRepositories>
 
-
-	<description>Salary program for Solinor</description>
 </project>

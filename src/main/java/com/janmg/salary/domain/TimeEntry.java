@@ -4,25 +4,25 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.OneToMany;
-
-import org.springframework.data.jpa.domain.AbstractPersistable;
-
-import lombok.Getter;
 
 @Entity
-public class TimeEntry extends AbstractPersistable<Long> {
-	
-	@Id @GeneratedValue(strategy = GenerationType.AUTO)
-	private Long id;
+public class TimeEntry {
 	// TODO: Changed to public because of bean accessibility
-	@Getter public String name;
+    // TODO: Find overlapping entries
+	
+
+	@Id
+	@GeneratedValue
+	public Long id;
+	  
+	public String name;
 	//@OneToMany
-	@Getter public int persid;
-	@Getter public String date;
-	@Getter public String start;
-	@Getter public String end;
-    
+	public int persid;
+	public String date;
+	public String start;
+	public String end;
+
+	@SuppressWarnings("unused")
     protected TimeEntry() {
     }
 
@@ -50,6 +50,9 @@ public class TimeEntry extends AbstractPersistable<Long> {
     public String getEnd() {
         return end;
     }
-
-    // TODO: Find overlapping entries
+    
+    @Override
+    public String toString() {
+        return String.format("TimeEntry[id=%d, name='%s', date='%s', start='%s', end='%s']", persid, name, date, start, end);
+    }
 }

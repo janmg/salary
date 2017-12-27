@@ -1,0 +1,9 @@
+<div th:fragment="employees">
+  <table>
+    <tr data-th-each="employee : ${employees}">
+      <td data-th-text="${employee.persid}">...</td>
+      <td data-th-text="${employee.name}">...</td>
+      <td data-th-text="${employee.hourlyrate}">...</td>
+    </tr>
+  </table>
+</div>

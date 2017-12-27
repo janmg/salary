@@ -10,4 +10,6 @@ import com.janmg.salary.domain.TimeEntry;
 public interface TimeRepository extends JpaRepository<TimeEntry, Long> {
 
     public List<TimeEntry> findByPersid(int persid);
+    
+    //public List<TimeEntry> findByMonth(String monthyear);
 }

@@ -1,9 +1,12 @@
 package com.janmg.salary;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.StringReader;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -15,6 +18,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.janmg.salary.domain.CalculatedEntry;
 import com.janmg.salary.domain.Employee;
 import com.janmg.salary.domain.TimeEntry;
@@ -37,15 +42,10 @@ public class SalaryService {
     Config conf = new Config();
     private final Log log = LogFactory.getLog(getClass());
     
-    @PostConstruct
-    @Transactional
-    public void init() throws IOException {
-        
-        // TODO: Move this out of the init phase, reviewers don't like shortcuts
-        
+    public void upload(byte[] file) throws IOException {
     	// Read CSV and populate JPA
-    	Reader in = new InputStreamReader(getClass().getResourceAsStream("/HourList201403.csv"));
-		Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
+        Reader reader = new StringReader(new String(file));
+		Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(reader);
 		
 		ArrayList<TimeEntry> allEntries = new ArrayList<>();
 		for (final CSVRecord rec : records) {
@@ -53,29 +53,22 @@ public class SalaryService {
 		    String name = rec.get("Person Name");
 		    allEntries.add(new TimeEntry(persid, name, rec.get("Date"), rec.get("Start"), rec.get("End")));
 		}
-		timeRepo.saveAll(allEntries);
-
-		// Calculate salary details
-		calculate();
-
-		// Read JPA and populate CSV
-        PrintWriter writer = new PrintWriter("monthly-output.csv", "UTF-8");
-        writer.println("Monthly Wages 03/2014:");
-        List<CalculatedEntry> entries = calculatedRepo.findAll();
-        for (CalculatedEntry ce : entries) {
-            writer.println(ce.getPersid() + ", " + ce.getName() + ", " + conf.getDenomination() + ce.getPay());
+		try {
+			timeRepo.saveAll(allEntries);
+		} catch (Exception e) {
+			// TODO: Fix Nullpointer, saveAll, persist, flush
+			log.error(allEntries.size()+" "+timeRepo.count());
+			log.error("Boo! File upload error: "+e.getLocalizedMessage());
+		} finally {
+			reader.close();
         }
-        writer.close();
-		
-/*
- 		Monthly Wages 03/2014:
-		    1, John Smith, $2534.00
-		    2, Jane Smith, $763.25
-		    3, James Smith, $8539.72
-*/
-    }
 
-    private void calculate() {
+		// TODO: Fix Nullpointer, probably employeeRepo isn't populated
+		// Calculate salary details
+		//calculate();
+    }
+    
+    public void calculate() {
     	
     	ArrayList<Employee> employees = (ArrayList<Employee>) employeeRepo.findAll();
     	for (Employee employee : employees) {
@@ -130,4 +123,16 @@ public class SalaryService {
 		    log.info("persid: " + persid + " has earned: " + totalpay);
     	}
     }
+    
+	public void download() throws FileNotFoundException, UnsupportedEncodingException {
+		// Read JPA and populate CSV
+        PrintWriter writer = new PrintWriter("monthly-output.csv", "UTF-8");
+        writer.println("Monthly Wages 03/2014:");
+        List<CalculatedEntry> entries = calculatedRepo.findAll();
+        for (CalculatedEntry ce : entries) {
+            writer.println(ce.getPersid() + ", " + ce.getName() + ", " + conf.getDenomination() + ce.getPay());
+        }
+        writer.close();
+	}
+
 }

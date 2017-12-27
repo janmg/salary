@@ -1,0 +1,9 @@
+<div th:fragment="calculated">
+  <table>
+    <tr data-th-each="entry : ${entries}">
+      <td data-th-text="${entry.persid}">...</td>
+      <td data-th-text="${entry.name}">...</td>
+      <td data-th-text="${entry.pay}">...</td>
+    </tr>
+  </table>
+</div>

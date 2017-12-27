@@ -1,0 +1,11 @@
+<div th:fragment="time">
+  <table>
+    <tr data-th-each="entry : ${entries}">
+      <td data-th-text="${entry.persid}">1</td>
+      <td data-th-text="${entry.name}">John Doe</td>
+      <td data-th-text="${entry.date}">1.3.2017</td>
+      <td data-th-text="${entry.start}">11:00</td>
+      <td data-th-text="${entry.end}">12:30</td>
+    </tr>
+  </table>
+</div>
