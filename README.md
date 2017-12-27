@@ -1,5 +1,7 @@
 # Salary Timesheet
 
+[Live preview at https://janmg.com/ ](https://janmg.com/)
+
 This program is intended for show and tell. The main purpose is to calculate monthly payments out of a given CSV timesheet following given calculation rules.
 
 To make the assignment interesting, it's written in Spring and especially JPA Hibernate to build up experience. Although they are overkill for time calculations, they are useful for building up experience. Not required by the assignment but for education is that the data can be exposed as REST API through a single annotation

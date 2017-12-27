@@ -2,8 +2,6 @@ package com.janmg.salary.controller;
 
 import java.io.IOException;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.error.ErrorController;
@@ -12,7 +10,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,11 +31,6 @@ public class WebController implements ErrorController {
     private CalculatedRepository calculatedRepository;
     @Autowired
     private SalaryService sal;
-    
-    @PostConstruct
-    public void init() {
-    	// TODO: nothing to init? remove method
-    }
     
     @GetMapping("/")
     public String index(Model model) {
@@ -69,34 +61,44 @@ public class WebController implements ErrorController {
     }
 
     @PostMapping("/upload")
-    public @ResponseBody String handleFileUpload(Model model, @RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
-    	String message = "";
-         if ( !file.isEmpty() ) {
-             String name = file.getName();
-             try {
-                 sal.upload(file.getBytes());
-                 message = "You successfully uploaded " + name;
-             }
-             catch ( Exception e ) {
-                 message = "Upload failed for " + name + " => " + e.getMessage();
-             }
-         } else {
-              message = "The uploaded file was empty";
-         }
-        return time(model);
-     }
+    public String handleFileUpload(Model model, @RequestParam("file") MultipartFile file) {
+        String message = "";
+        if ( !file.isEmpty() ) {
+            String name = file.getName();
+            try {
+            sal.upload(file.getBytes());
+            message = "You successfully uploaded " + name;
+            model.addAttribute("message", message);
+            return time(model);
+          } catch ( Exception e ) {
+            message = "File upload failed => " + e.getMessage();
+          }
+      } else {
+          message = "The uploaded file was empty";
+      }
+      model.addAttribute("message", message);
+      return index(model);
+    }
 
-    @RequestMapping(value = "/demo", method = RequestMethod.GET)
+    @GetMapping("/demo")
     public String demo(Model model) throws IOException {
     	String message = "Now the original demo file HourList201403.csv will be used";
     	byte[] in = IOUtils.toByteArray(getClass().getResourceAsStream("/HourList201403.csv"));
         sal.upload(in);
-        
+        model.addAttribute("message", message);
         return time(model);
     }
 
+    @GetMapping("/reset")
+    public String reset(Model model) {
+    	sal.reset();
+        model.addAttribute("message", "Timesheet has been emptied");
+		return index(model);
+    }
+    
     @RequestMapping("/error")
     public String error(Model model) {
+        model.addAttribute("message", "This is a sad moment for all of us, something didn't work");
     	model.addAttribute("content", "surullinen");
     	return "index";
     }

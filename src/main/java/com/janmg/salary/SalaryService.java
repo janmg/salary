@@ -2,7 +2,6 @@ package com.janmg.salary;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
@@ -10,16 +9,12 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
-import javax.annotation.PostConstruct;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.janmg.salary.domain.CalculatedEntry;
 import com.janmg.salary.domain.Employee;
 import com.janmg.salary.domain.TimeEntry;
@@ -49,27 +44,38 @@ public class SalaryService {
 		
 		ArrayList<TimeEntry> allEntries = new ArrayList<>();
 		for (final CSVRecord rec : records) {
+			// parse all time records
 		    int persid = new Integer(rec.get("Person ID"));
 		    String name = rec.get("Person Name");
 		    allEntries.add(new TimeEntry(persid, name, rec.get("Date"), rec.get("Start"), rec.get("End")));
+		    
+		    // learn all the employees
+		    Employee emp = employeeRepo.findByPersid(persid);
+		    if (emp != null) {
+		    	if (!emp.getName().equals(name)) {
+		    		log.error("employee-id "+persid+" with name "+name+" already exists as "+emp.getName());
+		    	}
+		    } else {
+		    	employeeRepo.save(new Employee(persid,name,conf.getRate("default")));
+		    }
 		}
 		try {
 			timeRepo.saveAll(allEntries);
 		} catch (Exception e) {
-			// TODO: Fix Nullpointer, saveAll, persist, flush
-			log.error(allEntries.size()+" "+timeRepo.count());
+			log.debug("Number of loaded entries: "+allEntries.size()+", number in the repository "+timeRepo.count());
 			log.error("Boo! File upload error: "+e.getLocalizedMessage());
 		} finally {
 			reader.close();
         }
-
-		// TODO: Fix Nullpointer, probably employeeRepo isn't populated
-		// Calculate salary details
-		//calculate();
     }
-    
+
+    public void reset() {
+		timeRepo.deleteAll();
+	}
+
     public void calculate() {
-    	
+    	calculatedRepo.deleteAll();
+		
     	ArrayList<Employee> employees = (ArrayList<Employee>) employeeRepo.findAll();
     	for (Employee employee : employees) {
     		int persid = employee.getPersid();
@@ -134,5 +140,4 @@ public class SalaryService {
         }
         writer.close();
 	}
-
 }

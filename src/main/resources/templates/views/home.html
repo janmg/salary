@@ -8,10 +8,15 @@
     <span class="numberCircle">1</span>
     First upload a CSV file with timesheet data, or click DEMO for previewing.
   </p>
-    <form action="demo">
-    <input type="submit" value="demo" />
-  </form>
+    <form action="demo" method="get">
+      <input type="submit" value="fill with demo timesheet" />
+    </form>
+    <form action="reset" method="get">
+      <input type="submit" value="empty timesheet" />
+    </form>
+    
   <bold>OR</bold>
+  
   <form action="upload" th:action="@{/upload}" method="post" enctype="multipart/form-data">
     <input type="file" name="file" />
     <input type="submit" value="upload" />
