@@ -25,13 +25,14 @@ import com.janmg.salary.repository.CalculatedRepository;
 import com.janmg.salary.repository.EmployeeRepository;
 import com.janmg.salary.repository.TimeRepository;
 import com.janmg.salary.utils.Config;
+import com.janmg.salary.utils.DateTime;
 import com.janmg.salary.utils.TimeCalc;
 
 @Service
 public class SalaryService {
 
     @Autowired private EmployeeRepository employeeRepo;
-	@Autowired private TimeRepository timeRepo;
+    @Autowired private TimeRepository timeRepo;
     @Autowired private CalculatedRepository calculatedRepo;
     
 	// Calculate works with DateTime to manipulate dates using Java8 ZonedDateTime, not very pretty though
@@ -75,74 +76,74 @@ public class SalaryService {
 		timeRepo.deleteAll();
 	}
 
-    @SuppressWarnings("unchecked")
 	public void calculate(int month,int year) {
-    	calculatedRepo.deleteAll();
 		
+		DateTime dt = new DateTime(conf);
+	    	
+    	calculatedRepo.deleteAll();
     	ArrayList<Employee> employees = (ArrayList<Employee>) employeeRepo.findAll();
     	for (Employee employee : employees) {
     		int persid = employee.getPersid();
 
-    		TreeMap<String,CalculatedDailyAmount> amounts = new TreeMap<>();
+    		TreeMap<Integer, CalculatedDailyAmount> amounts = new TreeMap<>();
     		double totalpay = 0;
-
-    		ArrayList<TimeEntry> entries = (ArrayList<TimeEntry>) timeRepo.findByPersid(employee.getPersid());
+        	
+    		// TODO: replace hardcoded month to input from webcontroller
+        	List<Range<Integer>> ranges = new ArrayList<Range<Integer>>();
+    		ArrayList<TimeEntry> entries = (ArrayList<TimeEntry>) timeRepo.findByPersidAndMonthyear(employee.getPersid(), "3.2014");
 		    for (TimeEntry time : entries)
 		    {
+		    	int day = new Integer(time.getDate().split("\\.")[0]);
                 int regular = 0;
                 int evening = 0;
-
-	        	String date = time.getDate();
-	        	Range<Integer> newrange = null;
+        	    Range<Integer> check = dt.asRange(time);
+        	    
+        	    boolean isUniqueRange = true;
+	        	for (Range<Integer>range : ranges) {
+	        	    if (range.isOverlappedBy(check)) {
+	        	    	log.error("Time range overlaps, not adding this range in the calculations");
+	        	    	isUniqueRange = false;
+	        	    	break;
+	        	    }
+	        	}
 	        	
-		        // TODO: Also test for the day after, because endtime after midnight overlaps with starttime the next day
-	        	// floorEntry / ceilingEntry
-		        // TODO: Use multiple ranges, maybe removing amounts isn't such a great strategy after all?
-		        if (amounts.containsKey(time.getDate())) {
-		        	// TODO: this will only get one entry, better to run through all of them!
-		        	Range<Integer> oldrange = amounts.get(date).getRange();
-		        	// --->>>  newrange = calc.asRange(time);
-		        	if (oldrange.isOverlappedBy(newrange)) {
-		        		log.error("Overlapping entries!");
-		        	}
-		        	
-		            // Remove first entries for same date and recalculate the payment
-		            CalculatedDailyAmount cda = amounts.get(date);
-		            regular = cda.getRegular();
-		            evening = cda.getEvening();
-	                totalpay -= cda.getPay();
-	                amounts.remove(date);
-		        }
-		         
-    		    // Calculate regular time
-                regular += calc.calculateRegular(time);
-    
-    		    // Calculate evening time compensation (out-of-office hours)
-    		    evening += calc.calculateEveningtime(time);
-    
-    		    // Calculate overtime as regular time plus overtime added as extra 'regular' time.
-    		    // For example 480min is 8h of regular time. 540min is 8h + 1h of overtime, which adds 15min to 555min 
-    		    float overtime = calc.calculateOvertime(regular);
-    		    double pay = ((employee.getRate() * overtime) + (conf.getRate("evening") * evening)) / 60;
-    		    		    
-    		    // Calculate weekend and holidays
-    		    // TODO: not part of the assignment, but would be very useful
+	        	if (isUniqueRange) {
+	        		ranges.add(check);
+			        if (amounts.containsKey(day)) {
+			        	// Remove first entries for same date and recalculate the payment
+			        	CalculatedDailyAmount cda = amounts.get(day);
+			            regular = cda.getRegular();
+			            evening = cda.getEvening();
+		                totalpay -= cda.getPay();
+		                amounts.remove(day);
+                    }
 
-    		    //range
-    		    amounts.put(time.getDate(), new CalculatedDailyAmount(newrange, regular, evening, pay));
-    		    totalpay += pay;
-    		    log.debug("persid: " + persid + ", time: "+time.getDate()+" "+time.getStart()+"-"+time.getEnd()+", regular: "+regular+", evening: "+evening+", overtime: "+overtime+", pay: "+conf.getDenomination("default")+pay);
-    		    
-    		    newrange = null;
-        	}
-		    
-		    String name = employee.getName();
-		    
-		    ArrayList<CalculatedEntry> list = new ArrayList<>();
-		    list.add(new CalculatedEntry(persid, name, String.format("%.2f", totalpay)));
-	        calculatedRepo.saveAll(list);
-		    
-		    log.info("persid: " + persid + " has earned: " + totalpay);
+                    // Calculate regular time
+                    regular += calc.calculateRegular(time);
+
+                    // Calculate evening time compensation (out-of-office hours)
+                    evening += calc.calculateEveningtime(time);
+    
+                    // Calculate overtime as regular time plus overtime added as extra 'regular' time.
+                    // For example 480min is 8h of regular time. 540min is 8h + 1h of overtime, which adds 15min to 555min 
+                    float overtime = calc.calculateOvertime(regular);
+                    double pay = ((employee.getRate() * overtime) + (conf.getRate("evening") * evening)) / 60;
+
+                    // Calculate weekend and holidays
+                    // TODO: not part of the assignment, but would be very useful
+
+                    amounts.put(day, new CalculatedDailyAmount(regular, evening, pay));
+                    totalpay += pay;
+                    log.debug("persid: " + persid + ", time: "+time.getDate()+" "+time.getStart()+"-"+time.getEnd()+", regular: "+regular+", evening: "+evening+", overtime: "+overtime+", pay: "+conf.getDenomination("default")+pay);
+                }
+		    }
+            String name = employee.getName();
+
+            ArrayList<CalculatedEntry> list = new ArrayList<>();
+            list.add(new CalculatedEntry(persid, name, String.format("%.2f", totalpay)));
+            calculatedRepo.saveAll(list);
+
+            log.info("persid: " + persid + " has earned: " + totalpay);
     	}
     }
     

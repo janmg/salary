@@ -77,6 +77,6 @@ public class DateTime {
 
 	private int asMontlyMinutes(ZonedDateTime time) {
 		// remove year and month so that the epoch starts every month
-		return (int)time.withYear(1970).withMonth(1).toEpochSecond() / 60;
+	    return (int)((time.toEpochSecond() - time.withDayOfMonth(1).withHour(0).withMinute(0).toEpochSecond()) / 60);
 	}
 }

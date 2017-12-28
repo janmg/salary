@@ -44,6 +44,18 @@ a:focus, a:hover, a:active {
     color: white;
     margin-bottom: 15px;
 }
+
+#sad {
+    position:absolute;
+    top:50%;
+    margin-top:-50px;
+    left:0;
+    right:0;
+    color: orange;
+    text-align: center;
+    font-size: 100px;'
+}
+
 .btn {
   border-width: 2px; }
 

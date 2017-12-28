@@ -44,6 +44,7 @@ public class WebController implements ErrorController {
         return "index";
     }
 
+    // @RequestParam("persid") String persid
 	@PostMapping("/newRate")
     public String newrate(Model model, WebRequest webRequest) {
 		String persid = webRequest.getParameter("persid");
@@ -78,27 +79,24 @@ public class WebController implements ErrorController {
     @PostMapping("/upload")
     public String handleFileUpload(Model model, @RequestParam("file") MultipartFile file) {
         String message = "";
-        if ( !file.isEmpty() ) {
-            String name = file.getName();
+        if ( file.isEmpty() ) {
+            message = "The uploaded file was empty";
+        } else {
             try {
-            sal.upload(file.getBytes());
-            message = "You successfully uploaded " + name;
-            model.addAttribute("message", message);
-            return time(model);
-          } catch ( Exception e ) {
-            message = "File upload failed => " + e.getMessage();
-          }
-      } else {
-          message = "The uploaded file was empty";
-      }
-      model.addAttribute("message", message);
-      return index(model);
+                sal.upload(file.getName().getBytes());
+                message = "You successfully uploaded " + file.getName();
+                return time(model);
+            } catch ( Exception e ) {
+                message = "File upload failed => " + e.getMessage();
+            }
+        }
+        model.addAttribute("message", message);
+        return index(model);
     }
 
     @GetMapping("/demo")
     public String demo(Model model) throws IOException {
-    	byte[] in = IOUtils.toByteArray(getClass().getResourceAsStream("/HourList201403.csv"));
-        sal.upload(in);
+        sal.upload(IOUtils.toByteArray(getClass().getResourceAsStream("/HourList201403.csv")));
         model.addAttribute("message", "Now the original demo file HourList201403.csv will be used");
         return time(model);
     }

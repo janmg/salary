@@ -6,14 +6,16 @@ import javax.persistence.Id;
 
 @Entity
 public class TimeEntry {
-	// TODO: Changed to public because of bean accessibility
+    // TODO: last minute change from full date as string to split to days and monthyear, this would require some rewriting to solve elegantly.
+    private final String DEL = ".";
 
+    // TODO: Changed to public because of bean accessibility
 	@Id	@GeneratedValue	public Long id;
-	  
 	public String name;
 	//@OneToMany
 	public int persid;
-	public String date;
+	public String monthyear;
+    public String day;
 	public String start;
 	public String end;
 
@@ -24,7 +26,8 @@ public class TimeEntry {
     public TimeEntry(int persid, String name, String date, String start, String end) {
     	this.name = name;
     	this.persid = persid;
-    	this.date = date;
+    	this.monthyear = date.substring(date.indexOf(DEL)+1);
+        this.day = date.substring(0, date.indexOf(DEL));
     	this.start = start;
     	this.end = end;
 	}
@@ -36,7 +39,7 @@ public class TimeEntry {
 	}
 
     public String getDate() {
-        return date;
+        return day+DEL+monthyear;
     }
 
     public String getStart() {
@@ -49,6 +52,6 @@ public class TimeEntry {
     
     @Override
     public String toString() {
-        return String.format("TimeEntry[id=%d, name='%s', date='%s', start='%s', end='%s']", persid, name, date, start, end);
+        return String.format("TimeEntry[id=%d, name='%s', date='%s', start='%s', end='%s']", persid, name, getDate(), start, end);
     }
 }

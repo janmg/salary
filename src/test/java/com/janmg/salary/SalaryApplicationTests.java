@@ -59,5 +59,4 @@ public class SalaryApplicationTests {
        TimeCalc calc = new TimeCalc();
        assertTrue(calc.calculateRegular(new TimeEntry(0,"JunitUser","26.3.2017", "2:00", "05:00")) == 120);
    }
-
 }
