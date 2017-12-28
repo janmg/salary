@@ -1,11 +1,11 @@
 package com.janmg.salary;
 
-import java.io.FileNotFoundException;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
-import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
@@ -74,6 +74,8 @@ public class SalaryService {
 
 	public void reset() {
 		timeRepo.deleteAll();
+		employeeRepo.deleteAll();
+		calculatedRepo.deleteAll();
 	}
 
 	public void calculate(int month,int year) {
@@ -147,14 +149,17 @@ public class SalaryService {
     	}
     }
     
-	public void download() throws FileNotFoundException, UnsupportedEncodingException {
+	public byte[] download(int month, int year) throws IOException {
 		// Read JPA and populate CSV
-        PrintWriter writer = new PrintWriter("monthly-output.csv", "UTF-8");
-        writer.println("Monthly Wages 03/2014:");
-        List<CalculatedEntry> entries = calculatedRepo.findAll();
+	    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+	    Writer writer = new OutputStreamWriter(bout);
+	    writer.write("Monthly Wages "+month+"/"+year+":"+"\n");
+	    List<CalculatedEntry> entries = calculatedRepo.findAll();
         for (CalculatedEntry ce : entries) {
-            writer.println(ce.getPersid() + ", " + ce.getName() + ", " + conf.getDenomination() + ce.getPay());
+            writer.write(ce.getPersid() + ", " + ce.getName() + ", " + conf.getDenomination() + ce.getPay()+"\n");
         }
+        writer.flush();
         writer.close();
+        return bout.toByteArray();
 	}
 }
