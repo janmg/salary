@@ -12,10 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.janmg.salary.SalaryService;
+import com.janmg.salary.domain.Employee;
 import com.janmg.salary.repository.CalculatedRepository;
 import com.janmg.salary.repository.EmployeeRepository;
 import com.janmg.salary.repository.TimeRepository;
@@ -23,14 +24,10 @@ import com.janmg.salary.repository.TimeRepository;
 @Controller
 public class WebController implements ErrorController {
 
-    @Autowired
-    private TimeRepository timeRepository;
-    @Autowired
-    private EmployeeRepository employeeRepository;
-    @Autowired
-    private CalculatedRepository calculatedRepository;
-    @Autowired
-    private SalaryService sal;
+    @Autowired private TimeRepository timeRepository;
+    @Autowired private EmployeeRepository employeeRepository;
+    @Autowired private CalculatedRepository calculatedRepository;
+    @Autowired private SalaryService sal;
     
     @GetMapping("/")
     public String index(Model model) {
@@ -40,6 +37,21 @@ public class WebController implements ErrorController {
 
     @GetMapping("/employees")
     public String employees(Model model) {
+    	emptyWarning(model);
+        model.addAttribute("employees", employeeRepository.findAll());
+    	model.addAttribute("content", "employees");
+
+        return "index";
+    }
+
+	@PostMapping("/newRate")
+    public String newrate(Model model, WebRequest webRequest) {
+		String persid = webRequest.getParameter("persid");
+		String rate = webRequest.getParameter("rate");
+		
+    	employeeRepository.setRateByPersid(new Integer(persid), Double.parseDouble(rate));
+
+        model.addAttribute("message", "rate for " +persid+ " is now updated");
         model.addAttribute("employees", employeeRepository.findAll());
     	model.addAttribute("content", "employees");  
         return "index";
@@ -47,14 +59,17 @@ public class WebController implements ErrorController {
 
     @GetMapping("/time")
     public String time(Model model) {
-        model.addAttribute("entries", timeRepository.findAll());
+    	emptyWarning(model);
+    	model.addAttribute("entries", timeRepository.findAll());
     	model.addAttribute("content", "time");  
         return "index";
     }
 
     @GetMapping("/calculated")
     public String calculated(Model model) {
-    	sal.calculate();
+    	// TODO: Create dropdown to select the month to calculate
+    	emptyWarning(model);
+        sal.calculate(3,2014);
         model.addAttribute("entries", calculatedRepository.findAll());
     	model.addAttribute("content", "calculated");
         return "index";
@@ -82,17 +97,16 @@ public class WebController implements ErrorController {
 
     @GetMapping("/demo")
     public String demo(Model model) throws IOException {
-    	String message = "Now the original demo file HourList201403.csv will be used";
     	byte[] in = IOUtils.toByteArray(getClass().getResourceAsStream("/HourList201403.csv"));
         sal.upload(in);
-        model.addAttribute("message", message);
+        model.addAttribute("message", "Now the original demo file HourList201403.csv will be used");
         return time(model);
     }
 
     @GetMapping("/reset")
     public String reset(Model model) {
     	sal.reset();
-        model.addAttribute("message", "Timesheet has been emptied");
+        model.addAttribute("message", "Timesheet has been reset");
 		return index(model);
     }
     
@@ -107,4 +121,10 @@ public class WebController implements ErrorController {
     public String getErrorPath() {
         return "index";
     }
+    
+    private void emptyWarning(Model model) {
+    	if (employeeRepository.count() == 0) {
+        	model.addAttribute("message", "Timesheet is empty, go to home and add some entries, maybe you like to click the demo button?");
+    	}
+	}
 }

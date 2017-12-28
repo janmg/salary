@@ -2,18 +2,13 @@ package com.janmg.salary.domain;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @Entity
 public class TimeEntry {
 	// TODO: Changed to public because of bean accessibility
-    // TODO: Find overlapping entries
-	
 
-	@Id
-	@GeneratedValue
-	public Long id;
+	@Id	@GeneratedValue	public Long id;
 	  
 	public String name;
 	//@OneToMany
@@ -34,7 +29,8 @@ public class TimeEntry {
     	this.end = end;
 	}
 
-    // TODO: Fix Lombox, getters are so '90-ties
+    // TODO: Fix Lombok, getters are so '90-ties
+    // https://stackoverflow.com/questions/34241718/lombok-builder-and-jpa-default-constructor#35602246
 	public int getPersid() {
 		return persid;
 	}

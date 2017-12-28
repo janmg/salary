@@ -9,15 +9,15 @@ import lombok.Getter;
 public class Employee {
 
 	@Id int persid;
-	@Getter private String name;
-	@Getter private double hourlyrate;
-	
+	@Getter public String name;
+	@Getter public double hourlyrate;
+
 	// https://spring.io/guides/gs/accessing-data-jpa/
 	// The default constructor only exists for the sake of JPA
 	@SuppressWarnings("unused")
 	protected Employee() {
 	}
-	
+
 	public Employee(int persid, String name, double hourlyrate) {
 		this.name = name;
 		this.persid = persid;
@@ -31,9 +31,13 @@ public class Employee {
 	public String getName() {
         return name;
     }
-	
+
     @Override
     public String toString() {
         return String.format("Employee[id=%d, name='%s', rate='%s']", persid, name, hourlyrate);
     }
+
+	public double getRate() {
+		return hourlyrate;
+	}
 }

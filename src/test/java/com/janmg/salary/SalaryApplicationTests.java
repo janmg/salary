@@ -7,7 +7,7 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import com.janmg.salary.domain.TimeEntry;
-import com.janmg.salary.utils.Calculate;
+import com.janmg.salary.utils.TimeCalc;
 import com.janmg.salary.utils.Config;
 
 @RunWith(SpringRunner.class)
@@ -17,7 +17,7 @@ public class SalaryApplicationTests {
 	@Test
 	public void rangeTest() {
 	    // The range test checks for a full 24 hours if the regular and overtime are increasing linearly for every minute, this does not check the actual values. Those are checked in the spotChecks.  
-	    Calculate calc = new Calculate(new Config());
+	    TimeCalc calc = new TimeCalc();
 	    int prev_regular = 0;
 	    float prev_overtime = 1;
 	    
@@ -26,7 +26,7 @@ public class SalaryApplicationTests {
 	            String endtime = String.format("%d:%02d", hours%24, mins);
 	            
 	            // Test if regular work time increases for every minute
-	            int regular = calc.calculateRegular("1.1.2010", "4:00", endtime);
+	            int regular = calc.calculateRegular(new TimeEntry(0,"JunitUser","1.1.2010", "4:00", endtime));
 	            if (regular < prev_regular) fail("More work should always result in more regular minutes");
 	            prev_regular = regular;
 
@@ -44,9 +44,9 @@ public class SalaryApplicationTests {
 
    @Test
    public void spotChecksTest() {
-       Calculate calc = new Calculate(new Config());
-       assertTrue(calc.calculateRegular("1.1.2010", "0:00", "8:00") == 480);
-       assertTrue(calc.calculateRegular("1.1.2010", "0:00", "9:00") == 540);
+       TimeCalc calc = new TimeCalc();
+       assertTrue(calc.calculateRegular(new TimeEntry(0,"JunitUser","1.1.2010", "0:00", "8:00")) == 480);
+       assertTrue(calc.calculateRegular(new TimeEntry(0,"JunitUser","1.1.2010", "0:00", "9:00")) == 540);
        assertTrue(calc.calculateEveningtime(new TimeEntry(0,"JunitUser","1.1.2010", "6:00", "18:00")) == 0);
        assertTrue(calc.calculateEveningtime(new TimeEntry(0,"JunitUser","1.1.2010", "5:00", "6:00")) == 60); // This test caught a =+ instead of +=  
        assertTrue(calc.calculateEveningtime(new TimeEntry(0,"JunitUser","1.1.2010", "18:00", "19:00")) == 60);
@@ -56,7 +56,7 @@ public class SalaryApplicationTests {
    @Test
    public void dayLightSavingTimeTest() {
        // Sunday, 26 March 2017, 03:00:00 clocks were turned forward 1 hour 
-       Calculate calc = new Calculate(new Config());
+       TimeCalc calc = new TimeCalc();
        assertTrue(calc.calculateRegular(new TimeEntry(0,"JunitUser","26.3.2017", "2:00", "05:00")) == 120);
    }
 
