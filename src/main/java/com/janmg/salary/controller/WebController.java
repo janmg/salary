@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.error.ErrorController;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +19,6 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.janmg.salary.SalaryService;
-import com.janmg.salary.domain.Employee;
 import com.janmg.salary.repository.CalculatedRepository;
 import com.janmg.salary.repository.EmployeeRepository;
 import com.janmg.salary.repository.TimeRepository;
@@ -72,22 +70,21 @@ public class WebController implements ErrorController {
 
     @GetMapping("/calculated")
     public String calculated(Model model) {
-    	// TODO: Create dropdown to select the month to calculate
     	emptyWarning(model);
-        sal.calculate(3,2014);
+        sal.calculate();
         model.addAttribute("entries", calculatedRepository.findAll());
     	model.addAttribute("content", "calculated");
         return "index";
     }
 
     @PostMapping("/upload")
-    public String handleFileUpload(Model model, @RequestParam("file") MultipartFile file) {
+    public String upload(Model model, @RequestParam("file") MultipartFile file) {
         String message = "";
         if ( file.isEmpty() ) {
             message = "The uploaded file was empty";
         } else {
             try {
-                sal.upload(file.getName().getBytes());
+                sal.upload(file.getBytes());
                 message = "You successfully uploaded " + file.getName();
                 return time(model);
             } catch ( Exception e ) {
@@ -106,10 +103,6 @@ public class WebController implements ErrorController {
         response.addHeader("Content-disposition", "attachment;filename=monthly-output.csv");
         response.setContentLength(file.length);
         response.getOutputStream().write(file);
-
-//        model.addAttribute("message", "");
-//        model.addAttribute("content", "calculated");
-//        return "index";
     }
 
     @GetMapping("/demo")

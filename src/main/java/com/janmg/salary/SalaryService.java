@@ -78,7 +78,7 @@ public class SalaryService {
 		calculatedRepo.deleteAll();
 	}
 
-	public void calculate(int month,int year) {
+	public void calculate() {
 		
 		DateTime dt = new DateTime(conf);
 	    	
@@ -90,9 +90,8 @@ public class SalaryService {
     		TreeMap<Integer, CalculatedDailyAmount> amounts = new TreeMap<>();
     		double totalpay = 0;
         	
-    		// TODO: replace hardcoded month to input from webcontroller
         	List<Range<Integer>> ranges = new ArrayList<Range<Integer>>();
-    		ArrayList<TimeEntry> entries = (ArrayList<TimeEntry>) timeRepo.findByPersidAndMonthyear(employee.getPersid(), "3.2014");
+    		ArrayList<TimeEntry> entries = (ArrayList<TimeEntry>) timeRepo.findByPersid(employee.getPersid());
 		    for (TimeEntry time : entries)
 		    {
 		    	int day = new Integer(time.getDate().split("\\.")[0]);
