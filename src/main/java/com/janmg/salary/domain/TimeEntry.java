@@ -50,6 +50,10 @@ public class TimeEntry {
         return end;
     }
     
+    public String getMonthyear() {
+        return monthyear;
+    }
+    
     @Override
     public String toString() {
         return String.format("TimeEntry[id=%d, name='%s', date='%s', start='%s', end='%s']", persid, name, getDate(), start, end);

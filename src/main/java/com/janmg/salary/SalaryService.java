@@ -41,13 +41,12 @@ public class SalaryService {
     private final Log log = LogFactory.getLog(getClass());
     
     public void upload(byte[] file) throws IOException {
-    	// Read CSV and populate JPA
         Reader reader = new StringReader(new String(file));
 		Iterable<CSVRecord> records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(reader);
 		
 		ArrayList<TimeEntry> allEntries = new ArrayList<>();
 		for (final CSVRecord rec : records) {
-			// parse all time records
+
 		    int persid = new Integer(rec.get("Person ID"));
 		    String name = rec.get("Person Name");
 		    allEntries.add(new TimeEntry(persid, name, rec.get("Date"), rec.get("Start"), rec.get("End")));
@@ -78,86 +77,91 @@ public class SalaryService {
 		calculatedRepo.deleteAll();
 	}
 
-	public void calculate(int month,int year) {
+	public void calculate() {
 		
 		DateTime dt = new DateTime(conf);
-	    	
     	calculatedRepo.deleteAll();
-    	ArrayList<Employee> employees = (ArrayList<Employee>) employeeRepo.findAll();
-    	for (Employee employee : employees) {
-    		int persid = employee.getPersid();
 
-    		TreeMap<Integer, CalculatedDailyAmount> amounts = new TreeMap<>();
-    		double totalpay = 0;
-        	
-    		// TODO: replace hardcoded month to input from webcontroller
-        	List<Range<Integer>> ranges = new ArrayList<Range<Integer>>();
-    		ArrayList<TimeEntry> entries = (ArrayList<TimeEntry>) timeRepo.findByPersidAndMonthyear(employee.getPersid(), "3.2014");
-		    for (TimeEntry time : entries)
-		    {
-		    	int day = new Integer(time.getDate().split("\\.")[0]);
-                int regular = 0;
-                int evening = 0;
-        	    Range<Integer> check = dt.asRange(time);
-        	    
-        	    boolean isUniqueRange = true;
-	        	for (Range<Integer>range : ranges) {
-	        	    if (range.isOverlappedBy(check)) {
-	        	    	log.error("Time range overlaps, not adding this range in the calculations");
-	        	    	isUniqueRange = false;
-	        	    	break;
-	        	    }
-	        	}
-	        	
-	        	if (isUniqueRange) {
-	        		ranges.add(check);
-			        if (amounts.containsKey(day)) {
-			        	// Remove first entries for same date and recalculate the payment
-			        	CalculatedDailyAmount cda = amounts.get(day);
-			            regular = cda.getRegular();
-			            evening = cda.getEvening();
-		                totalpay -= cda.getPay();
-		                amounts.remove(day);
-                    }
+        List<String> months = timeRepo.findDistinctByMonthyear();
+        for (String month : months) {
 
-                    // Calculate regular time
-                    regular += calc.calculateRegular(time);
+        	ArrayList<Employee> employees = (ArrayList<Employee>) employeeRepo.findAll();
+        	for (Employee employee : employees) {
+        		int persid = employee.getPersid();
 
-                    // Calculate evening time compensation (out-of-office hours)
-                    evening += calc.calculateEveningtime(time);
+        		TreeMap<Integer, CalculatedDailyAmount> amounts = new TreeMap<>();
+        		double totalpay = 0;
+
+            	List<Range<Integer>> ranges = new ArrayList<Range<Integer>>();
+        		ArrayList<TimeEntry> entries = (ArrayList<TimeEntry>) timeRepo.findByPersidAndMonthyear(employee.getPersid(), month);
+    		    for (TimeEntry time : entries)
+    		    {
+    		    	int day = new Integer(time.getDate().split("\\.")[0]);
+                    int regular = 0;
+                    int evening = 0;
+            	    Range<Integer> check = dt.asRange(time);
+            	    
+            	    boolean isUniqueRange = true;
+    	        	for (Range<Integer>range : ranges) {
+    	        	    if (range.isOverlappedBy(check)) {
+    	        	    	log.error("Time range overlaps, not adding this range in the calculations");
+    	        	    	isUniqueRange = false;
+    	        	    	break;
+    	        	    }
+    	        	}
+    	        	
+    	        	if (isUniqueRange) {
+    	        		ranges.add(check);
+    			        if (amounts.containsKey(day)) {
+    			        	// Remove first entries for same date and recalculate the payment
+    			        	CalculatedDailyAmount cda = amounts.get(day);
+    			            regular = cda.getRegular();
+    			            evening = cda.getEvening();
+    		                totalpay -= cda.getPay();
+    		                amounts.remove(day);
+                        }
     
-                    // Calculate overtime as regular time plus overtime added as extra 'regular' time.
-                    // For example 480min is 8h of regular time. 540min is 8h + 1h of overtime, which adds 15min to 555min 
-                    float overtime = calc.calculateOvertime(regular);
-                    double pay = ((employee.getRate() * overtime) + (conf.getRate("evening") * evening)) / 60;
-
-                    // Calculate weekend and holidays
-                    // TODO: not part of the assignment, but would be very useful
-
-                    amounts.put(day, new CalculatedDailyAmount(regular, evening, pay));
-                    totalpay += pay;
-                    log.debug("persid: " + persid + ", time: "+time.getDate()+" "+time.getStart()+"-"+time.getEnd()+", regular: "+regular+", evening: "+evening+", overtime: "+overtime+", pay: "+conf.getDenomination("default")+pay);
-                }
-		    }
-            String name = employee.getName();
-
-            ArrayList<CalculatedEntry> list = new ArrayList<>();
-            list.add(new CalculatedEntry(persid, name, String.format("%.2f", totalpay)));
-            calculatedRepo.saveAll(list);
-
-            log.info("persid: " + persid + " has earned: " + totalpay);
+                        // Calculate regular time
+                        regular += calc.calculateRegular(time);
+    
+                        // Calculate evening time compensation (out-of-office hours)
+                        evening += calc.calculateEveningtime(time);
+        
+                        // Calculate overtime as regular time plus overtime added as extra 'regular' time.
+                        // For example 480min is 8h of regular time. 540min is 8h + 1h of overtime, which adds 15min to 555min 
+                        float overtime = calc.calculateOvertime(regular);
+                        double pay = ((employee.getRate() * overtime) + (conf.getRate("evening") * evening)) / 60;
+    
+                        // Calculate weekend and holidays
+                        // TODO: not part of the assignment, but would be very useful
+    
+                        amounts.put(day, new CalculatedDailyAmount(regular, evening, pay));
+                        totalpay += pay;
+                        log.debug("persid: " + persid + ", time: "+time.getDate()+" "+time.getStart()+"-"+time.getEnd()+", regular: "+regular+", evening: "+evening+", overtime: "+overtime+", pay: "+conf.getDenomination("default")+pay);
+                    }
+    		    }
+                String name = employee.getName();
+    
+                ArrayList<CalculatedEntry> list = new ArrayList<>();
+                list.add(new CalculatedEntry(persid, name, String.format("%.2f", totalpay), month));
+                calculatedRepo.saveAll(list);
+    
+                log.info("persid: " + persid + " has earned: " + totalpay);
+        	}
     	}
     }
     
-	public byte[] download(int month, int year) throws IOException {
-		// Read JPA and populate CSV
+	public byte[] download() throws IOException {
 	    ByteArrayOutputStream bout = new ByteArrayOutputStream();
 	    Writer writer = new OutputStreamWriter(bout);
-	    writer.write("Monthly Wages "+month+"/"+year+":"+"\n");
-	    List<CalculatedEntry> entries = calculatedRepo.findAll();
-        for (CalculatedEntry ce : entries) {
-            writer.write(ce.getPersid() + ", " + ce.getName() + ", " + conf.getDenomination() + ce.getPay()+"\n");
-        }
+	    List<String> months = calculatedRepo.findDistinctByMonthyear();
+	    for (String month : months) {
+	        writer.write("Monthly Wages "+month.split("\\.")[0]+"/"+month.split("\\.")[1]+":"+"\n");
+	        List<CalculatedEntry> entries = calculatedRepo.findByMonthyear(month);
+	        for (CalculatedEntry ce : entries) {
+	            writer.write(ce.getPersid() + ", " + ce.getName() + ", " + conf.getDenomination() + ce.getPay()+"\n");
+	        }
+	    }
         writer.flush();
         writer.close();
         return bout.toByteArray();

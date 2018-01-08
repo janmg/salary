@@ -12,6 +12,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 	Employee findByPersid(int id);
 	
 	@Modifying
-	@Query("update Employee emp set emp.hourlyrate = ?2 where emp.persid = ?1")
+	@Query("update Employee emp set emp.hourlyrate = :rate where emp.persid = :persid")
 	void setRateByPersid(int persid, double rate);
 }

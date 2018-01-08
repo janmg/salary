@@ -10,10 +10,14 @@
   </thead>
   <tbody>
     <tr data-th-each="employee : ${employees}">
-      <td data-th-text="${employee.persid}">...</td>
-      <td data-th-text="${employee.name}">...</td>
-      <td data-th-text="${employee.hourlyrate}">...</td>
-      <td><form action="/newRate" method="post"><input type="text" name="rate"/><input type="hidden" name="persid" th:value="${employee.persid}" /></form></td>
+      <td data-th-text="${employee.persid}">96</td>
+      <td data-th-text="${employee.name}">Happy Coder</td>
+      <td data-th-text="${employee.hourlyrate}">3.75</td>
+      <td><form method="post" th:action="@{/newrate}">
+	      <input name="persid" id="persid" th:value="${employee.persid}" type="hidden" />
+  	      <input name="rate" id="rate" />
+          <button type="submit" name="submit" value="set" class="link-button"></button>
+      </form></td>
     </tr>
   </tbody>
   </table>

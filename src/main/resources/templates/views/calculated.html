@@ -1,12 +1,8 @@
 <div th:fragment="calculated">
-<!--
-  <p>
-    <form><input type="textarea" value="03.2014" name="month"></form>
-  </p>
--->  
   <table>
   <thead>
     <tr>
+      <th>Month</th>
       <th>ID</th>
       <th>Name</th>
       <th>Pay</th>
@@ -14,6 +10,7 @@
   </thead>
   <tbody>
     <tr data-th-each="entry : ${entries}">
+      <td data-th-text="${entry.monthyear}">...</td>
       <td data-th-text="${entry.persid}">...</td>
       <td data-th-text="${entry.name}">...</td>
       <td data-th-text="${entry.pay}">...</td>

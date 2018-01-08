@@ -16,17 +16,17 @@ public class CalculatedEntry {
     @Getter private int persid;
     @Getter private String name;
 	@Getter private String pay;
+    @Getter private String monthyear;
 
-    // https://spring.io/guides/gs/accessing-data-jpa/
-    // The default constructor only exists for the sake of JPA
     @SuppressWarnings("unused")
     protected CalculatedEntry() {
     }
 
-	public CalculatedEntry(int persid, String name, String pay) {
+	public CalculatedEntry(int persid, String name, String pay, String monthyear) {
         this.persid = persid;
         this.name = name;
 	    this.pay = pay;
+	    this.monthyear = monthyear;
 	}
 	
     public int getPersid() {
@@ -40,4 +40,8 @@ public class CalculatedEntry {
     public String getPay() {
 	    return pay;
 	}
+    
+    public String getMonthyear() {
+        return monthyear;
+    }
 }
