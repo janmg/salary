@@ -103,6 +103,9 @@ public class WebController implements ErrorController {
         response.addHeader("Content-disposition", "attachment;filename=monthly-output.csv");
         response.setContentLength(file.length);
         response.getOutputStream().write(file);
+        model.addAttribute("message", "");
+        model.addAttribute("content", "calculated");
+        return "index";
     }
 
     @GetMapping("/demo")
